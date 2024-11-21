@@ -2,14 +2,14 @@
 #include <U8glib.h>
 #include <SD.h>
 
-//Lets you test the standard features of a reprap discount full graphics 128x64 LCD
-//Test STOP and Encoder button
-//Test buzzer (Hold both STOP and Encoder buttons to activate)
-//Test SD detect, disply SD card information
-//Test Encode left/right
-//Verify the LCD is working.
+// Lets you test the standard features of a reprap discount full graphics 128x64 LCD
+// Test STOP and Encoder button
+// Test buzzer (Hold both STOP and Encoder buttons to activate)
+// Test SD detect, disply SD card information
+// Test Encode left/right
+// Verify the LCD is working.
 
-//Standard pins when on a RAMPS 1.4
+// Standard pins when on a RAMPS 1.4
 
 #define DOGLCD_CS       16
 #define DOGLCD_MOSI     17
@@ -26,19 +26,19 @@ Sd2Card card;
 SdVolume volume;
 
 
-int x=0;                                //Offset postion of title
-int kill_pin_status = 1;                //Last read status of the stop pin, start at 1 to ensure buzzer is off
-int encoderPos = 1;                     //Current encoder position
-int encoder0PinALast;                   //Used to decode rotory encoder, last value
-int encoder0PinNow;                     //Used to decode rotory encoder, current value
-char posStr[4];                         //Char array to store encoderPos as a string
+int x=0;                                // Offset postion of title
+int kill_pin_status = 1;                // Last read status of the stop pin, start at 1 to ensure buzzer is off
+int encoderPos = 1;                     // Current encoder position
+int encoder0PinALast;                   // Used to decode rotory encoder, last value
+int encoder0PinNow;                     // Used to decode rotory encoder, current value
+char posStr[4];                         // Char array to store encoderPos as a string
 char tmp_string[16];
-int enc_pin_status;                     //Last read status of the encoder button
-int sd_detect_pin_status = true;               //Last read status of the SD detect pin
-int scroll_direction=1;                 //Direction of title scroll, 1 right, -1 left
-unsigned long previousMillis = 0;       //Previous Millis value
-unsigned long currentMillis;            //Current Millis value
-const long interval = 1000/3;           //How often to run the display loop, every 1/3 of a second aproximatly 
+int enc_pin_status;                     // Last read status of the encoder button
+int sd_detect_pin_status = true;        // Last read status of the SD detect pin
+int scroll_direction=1;                 // Direction of title scroll, 1 right, -1 left
+unsigned long previousMillis = 0;       // Previous Millis value
+unsigned long currentMillis;            // Current Millis value
+const long interval = 1000/3;           // How often to run the display loop, every 1/3 of a second aproximatly 
 boolean gotsddata = false;
 
 int sdcardinit;
@@ -53,21 +53,21 @@ unsigned long sdvolumecc;
 U8GLIB_ST7920_128X64_1X u8g(DOGLCD_SCK, DOGLCD_MOSI, DOGLCD_CS);
 
 void setup() {
-  pinMode(SD_DETECT_PIN, INPUT);        // Set SD_DETECT_PIN as an unput
+  pinMode(SD_DETECT_PIN, INPUT);        // Set SD_DETECT_PIN as an input
   digitalWrite(SD_DETECT_PIN, HIGH);    // turn on pullup resistors
-  pinMode(KILL_PIN, INPUT);             // Set KILL_PIN as an unput
+  pinMode(KILL_PIN, INPUT);             // Set KILL_PIN as an input
   digitalWrite(KILL_PIN, HIGH);         // turn on pullup resistors
-  pinMode(BTN_EN1, INPUT);              // Set BTN_EN1 as an unput, half of the encoder
+  pinMode(BTN_EN1, INPUT);              // Set BTN_EN1 as an input, first half of the encoder
   digitalWrite(BTN_EN1, HIGH);          // turn on pullup resistors
-  pinMode(BTN_EN2, INPUT);              // Set BTN_EN2 as an unput, second half of the encoder
+  pinMode(BTN_EN2, INPUT);              // Set BTN_EN2 as an input, second half of the encoder
   digitalWrite(BTN_EN2, HIGH);          // turn on pullup resistors
-  pinMode(BTN_ENC, INPUT);              // Set BTN_ENC as an unput, encoder button
+  pinMode(BTN_ENC, INPUT);              // Set BTN_ENC as an input, encoder button
   digitalWrite(BTN_ENC, HIGH);          // turn on pullup resistors
-  u8g.setFont(u8g_font_helvR08);        //Set the font for the display
+  u8g.setFont(u8g_font_helvR08);        // Set the font for the display
   u8g.setColorIndex(1);                 // Instructs the display to draw with a pixel on.
 }
 
-//Main arduino loop
+// Main arduino loop
 void loop() {
   // Read the encoder and update encoderPos
   encoder0PinNow = digitalRead(BTN_EN1);
@@ -81,7 +81,7 @@ void loop() {
   encoder0PinALast = encoder0PinNow;
 
 
-  //read in SD data when SD is incerted
+  // read in SD data when SD is incerted
   if (!sd_detect_pin_status && !gotsddata) {
       sdcardinit = card.init(SPI_HALF_SPEED, SDSS);
       sdcardtype = card.type();
@@ -92,40 +92,40 @@ void loop() {
       gotsddata = true;
   }
 
-  //check if it is time to update the display
+  // check if it is time to update the display
   currentMillis = millis();
   if (currentMillis - previousMillis >= interval) {
     previousMillis = currentMillis;
 
-    //read the kill pin status
+    // read the kill pin status
     kill_pin_status = digitalRead(KILL_PIN);
-    //read the encoder button status
+    // read the encoder button status
     enc_pin_status = digitalRead(BTN_ENC);
-    //read the SD detect pin status
+    // read the SD detect pin status
     sd_detect_pin_status = digitalRead(SD_DETECT_PIN);
     if (sd_detect_pin_status) {
       gotsddata = false;
     }
 
-    //Check if both Kill switch and encoder are pressed, if so switch on buzzer
+    // Check if both Kill switch and encoder are pressed, if so switch on buzzer
     if(kill_pin_status || enc_pin_status) digitalWrite(BEEPER_PIN, LOW);
     else digitalWrite(BEEPER_PIN, HIGH);
 
-    //Draw new screen
+    // Draw new screen
     u8g.firstPage();
     do {
       if(gotsddata) draw2();
       else draw();
     } while( u8g.nextPage() );
 
-    //Update Title position
+    // Update Title position
     x=x+scroll_direction;
     if (x > 40) scroll_direction = -1;
     if (x < 1) scroll_direction = 1;
   }
 }
 
-//Assemble the display
+// Assemble the display
 void draw(){
   u8g.setColorIndex(0);
   u8g.drawBox(0,0,128,64);
@@ -156,7 +156,7 @@ void draw(){
   u8g.drawFrame(0,0,128,64);
 }
 
-//Display SD card info
+// Display SD card info
 void draw2(){
   u8g.setColorIndex(0);
   u8g.drawBox(0,0,128,64);
