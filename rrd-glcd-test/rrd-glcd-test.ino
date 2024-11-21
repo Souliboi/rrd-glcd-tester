@@ -18,7 +18,7 @@
 #define BTN_EN2         33
 #define BTN_ENC         35
 #define SD_DETECT_PIN   49
-#define SDSS            53
+#define SDSS            53              // SD Chip Select pin
 #define BEEPER_PIN      37
 #define KILL_PIN        41
 
